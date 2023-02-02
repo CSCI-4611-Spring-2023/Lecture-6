@@ -133,6 +133,19 @@ export class SpaceMinesweeper extends gfx.GfxApp
     // To be completed in part 2
     private spawnMine(): void
     {
-        console.log('mine!');
+        const mineSpawnDistance = 0.5;
+        const mineLimit = 20;
+
+        const mineInstance = new gfx.ShapeInstance(this.mine);
+        
+        mineInstance.rotation = Math.random() * Math.PI * 2;
+        mineInstance.translateY(mineSpawnDistance);
+
+        this.mines.add(mineInstance);
+
+        if(this.mines.children.length > mineLimit)
+        {
+            this.mines.children[0].remove();
+        }
     }
 }
