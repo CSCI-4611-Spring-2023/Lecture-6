@@ -79,6 +79,9 @@ export class SpaceMinesweeper extends gfx.GfxApp
         this.mine.material.texture =  new gfx.Texture('./mine.png');
         this.mine.scale.set(0.12, 0.12);
 
+        this.ship.boundingCircle.radius *= 0.5;
+        this.mine.boundingCircle.radius *= 0.5;
+
         // Add all the objects to the scene. Note that the order is important!
         // Objects that are added later will be rendered on top of objects
         // that are added first. This is most important for the stars; because
@@ -117,6 +120,15 @@ export class SpaceMinesweeper extends gfx.GfxApp
             mineToShip.normalize();
             mineToShip.multiplyScalar(mineSpeed);
             mine.position.add(mineToShip);
+        });
+
+        // Check to see if the ship is colliding with each mine
+        // If they are intersecting, then remove the mine
+        this.mines.children.forEach((mine: gfx.Transform2) => {
+            if(this.ship.intersects(mine, gfx.IntersectionMode2.BOUNDING_CIRCLE))
+            {
+                mine.remove();
+            }
         });
 
         // Check to see if enough time has elapsed since the last
