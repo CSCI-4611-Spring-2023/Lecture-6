@@ -98,6 +98,7 @@ export class SpaceMinesweeper extends gfx.GfxApp
         // This is important to make sure that the game plays similarly
         // on different devices regardless of the framerate.
         const shipSpeed = 0.8 * deltaTime;
+        const mineSpeed = 0.2 * deltaTime;
         const mineSpawnInterval = 1;
         
         // Point the ship wherever the mouse cursor is located.
@@ -109,6 +110,14 @@ export class SpaceMinesweeper extends gfx.GfxApp
         {
             this.ship.translateY(shipSpeed);
         }
+
+        // This code makes the mines "home" in on the ship position
+        this.mines.children.forEach((mine: gfx.Transform2) => {
+            const mineToShip = gfx.Vector2.subtract(this.ship.position, mine.position);
+            mineToShip.normalize();
+            mineToShip.multiplyScalar(mineSpeed);
+            mine.position.add(mineToShip);
+        });
 
         // Check to see if enough time has elapsed since the last
         // mine was spawned, and if so, then call the function
@@ -133,7 +142,7 @@ export class SpaceMinesweeper extends gfx.GfxApp
     // To be completed in part 2
     private spawnMine(): void
     {
-        const mineSpawnDistance = 0.5;
+        const mineSpawnDistance = 1.5;
         const mineLimit = 20;
 
         const mineInstance = new gfx.ShapeInstance(this.mine);
