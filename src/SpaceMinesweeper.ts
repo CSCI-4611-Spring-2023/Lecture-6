@@ -79,8 +79,12 @@ export class SpaceMinesweeper extends gfx.GfxApp
         this.mine.material.texture =  new gfx.Texture('./mine.png');
         this.mine.scale.set(0.12, 0.12);
 
-        this.ship.boundingCircle.radius *= 0.5;
-        this.mine.boundingCircle.radius *= 0.5;
+        // When the geometry for the rectangle is created, the bounding circle
+        // and bounding box is computed automatically.  However, sometimes it
+        // is useful to scale them manually so that they provide a better
+        // approximation for collision detection.  
+        this.ship.boundingCircle.radius *= .5;
+        this.mine.boundingCircle.radius *= .5;
 
         // Add all the objects to the scene. Note that the order is important!
         // Objects that are added later will be rendered on top of objects
@@ -115,20 +119,18 @@ export class SpaceMinesweeper extends gfx.GfxApp
         }
 
         // This code makes the mines "home" in on the ship position
-        this.mines.children.forEach((mine: gfx.Transform2) => {
+        this.mines.children.forEach((mine: gfx.Transform2) => { 
             const mineToShip = gfx.Vector2.subtract(this.ship.position, mine.position);
             mineToShip.normalize();
-            mineToShip.multiplyScalar(mineSpeed);
+            mineToShip.multiplyScalar(mineSpeed)
             mine.position.add(mineToShip);
         });
 
         // Check to see if the ship is colliding with each mine
         // If they are intersecting, then remove the mine
-        this.mines.children.forEach((mine: gfx.Transform2) => {
-            if(this.ship.intersects(mine, gfx.IntersectionMode2.BOUNDING_CIRCLE))
-            {
+        this.mines.children.forEach((mine: gfx.Transform2) => { 
+            if(this.ship.intersects(mine))
                 mine.remove();
-            }
         });
 
         // Check to see if enough time has elapsed since the last
@@ -151,19 +153,26 @@ export class SpaceMinesweeper extends gfx.GfxApp
         this.mousePosition.copy(this.getNormalizedDeviceCoordinates(event.x, event.y));
     }
 
-    // To be completed in part 2
+    // This function creates a new mine.  In order to prevent infinite mines,
+    // which would slow down the game, we limit the total number of mines.
+    // If the number of mines exceeds the limit, we remove the oldest mine.
     private spawnMine(): void
     {
         const mineSpawnDistance = 1.5;
         const mineLimit = 20;
-
-        const mineInstance = new gfx.ShapeInstance(this.mine);
         
+        // This creates a new instance of the base mine object.
+        // Note that the Mine class extends the ShapeInstance class,
+        // so only the original object will be created in GPU memory.
+        const mineInstance = new gfx.ShapeInstance(this.mine);
+        this.mines.add(mineInstance);
+
+        // Compute a random direction ahead of the ship and then translate
+        // mine far enough away that it is outside the edge of the screen.
         mineInstance.rotation = Math.random() * Math.PI * 2;
         mineInstance.translateY(mineSpawnDistance);
 
-        this.mines.add(mineInstance);
-
+        // If we are over the mine limit, remove the oldest one!
         if(this.mines.children.length > mineLimit)
         {
             this.mines.children[0].remove();
